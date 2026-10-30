@@ -14,9 +14,7 @@ class Solution:
         
         result = []
         for sentence in all_words:
-            lst = []
-            for word in sentence.split():
-                lst.append(torch.tensor(vocab_map[word]))
+            lst = [torch.tensor(vocab_map[word]) for word in sentence.split()]
             result.append(torch.tensor(lst))
 
         return torch.nn.utils.rnn.pad_sequence(result, padding_value=0, batch_first=True)
