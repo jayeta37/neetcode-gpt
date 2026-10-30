@@ -5,26 +5,18 @@ from torchtyping import TensorType
 # torch.tensor(python_list) returns a Python list as a tensor
 class Solution:
     def get_dataset(self, positive: List[str], negative: List[str]) -> TensorType[float]:
-        vocabulary = set()
-        combined = positive + negative
-        for sentence in combined:
+        all_words = positive + negative
+        vocabulary = sorted(list(set(word for sentence in all_words for word in sentence.split())))
+        vocab_map = {}
+
+        for k, v in enumerate(vocabulary):
+            vocab_map[v] = k + 1.0
+        
+        result = []
+        for sentence in all_words:
+            lst = []
             for word in sentence.split():
-                vocabulary.add(word)
+                lst.append(torch.tensor(vocab_map[word]))
+            result.append(torch.tensor(lst))
 
-        vocabulary = sorted(vocabulary)
-
-        word2int = {}
-        for i, word in enumerate(vocabulary):
-            word2int[word] = i + 1
-
-        def encode(sentence):
-            integer_vocabulary = []
-            for word in sentence.split():
-                integer_vocabulary.append(word2int[word])
-            return torch.tensor(integer_vocabulary)
-
-        var_len_vocabulary = []
-        for sentence in combined:
-            var_len_vocabulary.append(encode(sentence))
-
-        return nn.utils.rnn.pad_sequence(var_len_vocabulary, batch_first = True)
+        return torch.nn.utils.rnn.pad_sequence(result, padding_value=0, batch_first=True)
